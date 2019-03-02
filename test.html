@@ -2,9 +2,11 @@
 <html>
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.8.9/jquery.csv.min.js"></script>
+    <!--デザイン参考：https://saruwakakun.com/html-css/reference/box -->
     <style>
         div li {
             text-align: center;
@@ -21,40 +23,48 @@
         .box {
             position: relative;
             margin: 2em 0;
-            padding: 25px 10px 7px;
-            border: solid 2px #FFC107;
+            padding: 0.5em 1em;
+            border: solid 3px #95ccff;
+            border-radius: 8px;
             width: 640px;
         }
 
         .box .title {
             position: absolute;
             display: inline-block;
-            top: -2px;
-            left: -2px;
-            padding: 10px 30px;
-            height: 25px;
-            line-height: 25px;
-            vertical-align: middle;
-            font-size: 1em;
-            background: #FFC107;
-            color: #ffffff;
+            top: -13px;
+            left: 10px;
+            padding: 0 9px;
+            line-height: 1;
+            font-size: 19px;
+            background: #FFF;
+            color: #95ccff;
             font-weight: bold;
         }
 
         .box p {
-            margin: 1em;
-            padding: 1em;
+            margin: 0;
+            padding: 0;
         }
 
         .btn {
             font-size: 1em;
             font-weight: bold;
             padding: 10px 30px;
-            background-color: #FFC107;
+            background-color: #5fb3f5;
             color: #fff;
             border-style: none;
         }
 
+        @media only screen and (max-width: 640px) {
+            .box {
+                width: 90%;
+            }
+
+            li {
+                width: 100%;
+            }
+        }
     </style>
     <script>
         $(function () {
@@ -62,7 +72,7 @@
             var insert = '';
             var hdn = '';
             $.ajax({
-                url: 'test',
+                url: 'test.csv',
                 success: function (data) {
 
                     //CSV取得
@@ -73,7 +83,7 @@
                         if (csvData[i][0] != 0) {
                             hdn = "hidden";
                         }
-                        insert += '<div class="box" id="' + csvData[i][0] + '" '+ hdn +'>';
+                        insert += '<div class="box" id="' + csvData[i][0] + '" ' + hdn + '>';
                         insert += '<span class="title">' + csvData[i][1] + '</span>';
                         insert += '<p>' + csvData[i][2] + '</p>';
                         insert += '<form>';
@@ -81,15 +91,15 @@
                         for (var j = 3; j < csvData[i].length; j++) {
                             if (csvData[i][j] != '') {
                                 var x = csvData[i][j];
-                                insert += '<li> <input type="button" name="' + (x-1) + '" value="' + csvData[x][1] + '" class="btn"></li>';
-                            }                            
+                                insert += '<li> <input type="button" name="' + (x - 1) + '" value="' + csvData[x][1] + '" class="btn"></li>';
+                            }
                         }
                         insert += '</ul>';
                         insert += '</form>';
                         insert += '</div>';
                     };
                     $('#csv_body').append(insert);
-                }                         
+                }
             });
 
             //ボタンクリック処理
@@ -97,12 +107,11 @@
                 var pid = $(this).parents('div').attr('id');
                 var vid = $(this).attr('name');
 
-                //カレント項目非表示             
+                //カレント項目非表示
                 $('#' + pid).hide()
                 //選択項目表示
                 $('#' + vid).show()
             });
-
         });
     </script>
 </head>
