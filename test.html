@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>PG_TEST</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.8.9/jquery.csv.min.js"></script>
     <!--デザイン参考：https://saruwakakun.com/html-css/reference/box -->
@@ -83,7 +83,7 @@
                         if (csvData[i][0] != 0) {
                             hdn = "hidden";
                         }
-                        insert += '<div class="box" id="' + csvData[i][0] + '" ' + hdn + '>';
+                        insert += '<div id="' + csvData[i][0] + '" class="box" ' + hdn + '>';
                         insert += '<span class="title">' + csvData[i][1] + '</span>';
                         insert += '<p>' + csvData[i][2] + '</p>';
                         insert += '<form>';
