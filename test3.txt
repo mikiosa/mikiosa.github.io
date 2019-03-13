@@ -1,0 +1,55 @@
+'Microsoft ActiveX Data Objects *.* Library
+'Microsoft VBScript Regular Expression *.*
+
+'▼ T
+'ID , code, Exp
+'
+'▼ T2
+'ID , code, Exp, ptnId
+'
+'▼ Tptn
+'strSearch , strReplace
+
+Public Sub func1()
+    Dim recT As New ADODB.Recordset
+    Dim recT2 As New ADODB.Recordset
+    Dim recP As New ADODB.Recordset
+    
+    Dim cmd As New ADODB.Command
+    Dim strExp As String
+    Dim strExpId As String
+    
+    Dim regEx As RegExp
+    Dim regChk As Boolean
+    Set regEx = New RegExp
+        
+    cmd.ActiveConnection = CurrentProject.Connection
+    cmd.CommandText = "DELETE * FROM T2;"
+    cmd.Execute
+    
+    recT.Open "T", CurrentProject.Connection
+    recP.Open "Tptn", CurrentProject.Connection
+        
+    Do Until recT.EOF
+        strExp = recT("exp")
+        strExpId = ""
+        recP.MoveFirst
+    
+        Do Until recP.EOF
+            regEx.Pattern = recP("strSearch")
+            regChk = regEx.Test(strExp)
+            
+            If regChk = True Then
+                strExpId = strExpId & "," & recP("ID")
+                strExp = regEx.Replace(strExp, recP("strReplace") & "")
+            End If
+            recP.MoveNext
+        Loop
+        
+        cmd.CommandText = "INSERT INTO T2 ( code, exp, ptnId ) " & _
+                            "VALUES ( '" & recT("code") & "', '" & strExp & "', '" & strExpId & "');"
+        cmd.Execute
+                
+        recT.MoveNext
+    Loop
+End Sub
