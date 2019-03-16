@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.8.9/jquery.csv.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <style>
+        h1 {
+            color: #364e96;
+            padding: 0.5em 0;
+            border-top: solid 3px #364e96;
+            border-bottom: solid 3px #364e96;
+        }
+
+        #btn {
+            font-size: 1em;
+            font-weight: bold;
+            padding: 10px 30px;
+            background-color: #364e96;
+            color: #fff;
+            border-style: none;
+            width: 100%;
+        }
+
+        #answer > div {
+            position: relative;
+            margin: 2em 0;
+            padding: 0.5em 1em;
+            border: solid 3px #364e96;
+            border-radius: 8px;
+            width: 640px;
+        }
+
+        @media only screen and (max-width: 640px) {
+            .check_sheet {
+                width: 90%;
+            }
+        }
+    </style>
+    <script>
+        $(function () {
+            var csvData;
+            var insertQ = '';
+            var insertA = '';
+            
+            var hdn = '';
+            $.ajax({
+                url: 'test2',
+                success: function (data) {
+                    csvData = $.csv.toArrays(data);
+                    
+                    for (var i = 1; i < csvData.length; i++) {
+                        insertQ += '<p id="q' + csvData[i][0] + '"><input type="checkbox" class="' + csvData[i][1] + '" value="' + csvData[i][0] + '">' + csvData[i][2] + '</p>';
+                        insertA += '<div id="a' + csvData[i][0] + '" style="display:none">' + csvData[i][3] + '</div>';
+                    };
+                    $('#question').append(insertQ);
+                    $('#answer').append(insertA);
+                }
+            });
+
+            $(document).on('click', '#btn', function (e) {
+                e.preventDefault();
+
+                var i = 0;
+                $('input[type=checkbox]').each(function (idx) {
+                    var setval = $(this).val();
+                    var setObj = $('#a' + setval);
+
+                    if (String($(this).prop('checked')) != String($(this).attr('class'))) {
+                        i += 1;
+                        setObj.css('display', 'block');
+                    } else {
+                        setObj.css('display', 'none');
+                    }
+                });
+
+                if (i == 0) {
+                    $('#contact').css('display', 'block');
+                } else {
+                    $('#contact').css('display', 'none');
+                }
+            });
+
+            $('#btn').click(function () {
+                if ($(this).val() == "診断する") {
+                    $(this).val("再診断");
+                } else {
+                    $(this).val("診断する");
+                }
+
+                $('#question').toggle("blind", get_opt("blind"), 1000);
+            });
+        });
+
+        var get_opt = function (eff) {
+            if (eff === 'scale') {
+                return { percent: 30 };
+            }
+            else if (eff === 'size') {
+                return { to: { width: 30, height: 30 } };
+            }
+            else {
+                return {};
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="check_sheet">
+        <h1>チェックシート</h1>
+        <div id="question">
+        </div>
+        <input type="button" name="btn" value="診断する" id="btn">
+    </div>
+    <div id="answer">
+        <div id="contact" style="display:none">
+            <font color="red"><b>不具合の可能性があります。</b></font><br />
+            <br />
+            ■ お問い合わせ先<br />
+            ○○○ ユーザーサポート係<br />
+            Mail:　****@******.**.**　(24時間受信可能）<br />
+            TEL: **-****-**** (平日9:00～12:00 13:00～17:00)<br />
+            FAX: **-****-**** (24時間受信可能)<br />
+        </div>
+    </div>
+</body>
+</html>
