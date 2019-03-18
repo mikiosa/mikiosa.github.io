@@ -182,3 +182,59 @@ Public Sub funcExec()
         rec1.MoveNext
     Loop
 End Sub
+
+'▼ Tptn2
+'ID  strSearch   strReplace  np  cash    cDiv
+'1   "<!--/送料区分-->"   "【代引き不可】<!--/送料区分-->"       ○  【代引き不可】
+
+'▼ Tnp
+'ID  cCode   np  cash
+'1   hg-27906    ○  ○
+
+Public Sub func5()
+    Dim rec1 As New ADODB.Recordset
+    Dim rec2 As New ADODB.Recordset
+    
+    Dim cmd As New ADODB.Command
+    
+    Dim np As String
+    Dim cash As String
+    
+    Dim strExp1 As String
+    
+    Dim regEx As RegExp
+    Dim regChk As Boolean
+    Set regEx = New RegExp
+    
+    rec1.Open "SELECT T2.cCode, T2.cName, T2.exp1_after, Tnp.np, Tnp.cash FROM T2 LEFT JOIN Tnp ON T2.cCode = Tnp.cCode WHERE (((Tnp.np)='○')) OR (((Tnp.cash)='○'));", CurrentProject.Connection
+    
+    Do Until rec1.EOF
+        np = rec1("np") & ""
+        cash = rec1("cash") & ""
+                        
+        If np = "○" And cash = "○" Then
+            rec2.Open "SELECT Tptn2.strSearch, Tptn2.strReplace, Tptn2.np, Tptn2.cash, Tptn2.cDiv FROM Tptn2 WHERE (((Tptn2.np)='○') AND ((Tptn2.cash)='○'));", CurrentProject.Connection
+        ElseIf np = "○" And cash = "" Then
+            rec2.Open "SELECT Tptn2.strSearch, Tptn2.strReplace, Tptn2.np, Tptn2.cash, Tptn2.cDiv FROM Tptn2 WHERE (((Tptn2.np)='○') AND ((Tptn2.cash) Is Null));", CurrentProject.Connection
+        ElseIf np = "" And cash = "○" Then
+            rec2.Open "SELECT Tptn2.strSearch, Tptn2.strReplace, Tptn2.np, Tptn2.cash, Tptn2.cDiv FROM Tptn2 WHERE (((Tptn2.np Is Null)) AND ((Tptn2.cash)='○'));", CurrentProject.Connection
+        Else
+            Exit Do
+        End If
+        
+        strExp1 = rec1("exp1_after") & ""
+        regEx.Pattern = rec2("strSearch")
+        
+        regChk = regEx.Test(strExp1)
+        If regChk = True Then
+            strExp1 = regEx.Replace(strExp1, rec2("strReplace") & "")
+        End If
+        
+        cmd.ActiveConnection = CurrentProject.Connection
+        cmd.CommandText = "UPDATE T2 SET exp1_after = '" & strExp1 & "', ptnId = ptnId + '," & rec2("cDiv") & " ' WHERE cCode = '" & rec1("cCode") & "';"
+        cmd.Execute
+        
+        rec2.Close
+        rec1.MoveNext
+    Loop
+End Sub
