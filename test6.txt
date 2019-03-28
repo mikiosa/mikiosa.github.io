@@ -1,0 +1,203 @@
+Option Compare Database
+
+'Microsoft ActiveX Data Objects *.* Library
+'Microsoft VBScript Regular Expression *.*
+
+'▼ T
+'ID, cCode, cName, exp1, exp2
+
+'▼ T2
+'ID, cCode, cName, exp1, exp1_after, exp2, exp2_after, ptnId
+
+'▼ Tnp
+'ID  cCode   np  cash
+'1   hg-27906    ○  ○
+
+'▼ Tptn
+'ID  strSearch   strReplace  strReplace2 cDiv
+'<iframe src="https://yahoo_A_1_pc.html" scrolling="no" frameborder="0" width="400" height="540"></iframe>
+
+'▼ Tptn2
+'ID  strSearch   strReplace  np  cash    cDiv
+'<iframe src="https://yahoo_(.)_1_pc.html" scrolling="no" frameborder="0" width="400" height="540"></iframe>
+'<iframe src="https://yahoo_$1_2_pc.html" scrolling="no" frameborder="0" width="400" height="620"></iframe>
+
+'【F5】
+Public Sub funcExec()
+    func1
+    func5
+End Sub
+
+'商品名置換
+Function func2(cName As String) As String
+    Dim regEx As RegExp
+    Dim Matches As Object
+    Dim m As String
+    Dim regChk As Boolean
+    Set regEx = New RegExp
+
+    regEx.Pattern = "/梱包サイズ(.{1,2})"
+    regChk = regEx.Test(cName)
+    
+    If regChk = True Then
+        Set Matches = regEx.Execute(cName)
+         m = Matches.Item(0).SubMatches(0)
+        
+        Select Case m
+            Case "小"
+                cName = regEx.Replace(cName, "/A")
+            Case "中"
+                cName = regEx.Replace(cName, "/B")
+            Case "大"
+                cName = regEx.Replace(cName, "/C")
+            Case "特大"
+                cName = regEx.Replace(cName, "/D")
+            'Case ""
+                'cName = regEx.Replace(cName, "【E】")
+            Case Else
+                cName = regEx.Replace(cName, "/*")
+        End Select
+    End If
+    
+    func2 = cName
+End Function
+
+'配送案内タグ置換
+Public Sub func1()
+    Dim recT As New ADODB.Recordset
+    Dim recT2 As New ADODB.Recordset
+    Dim recP As New ADODB.Recordset
+    
+    Dim cmd As New ADODB.Command
+    Dim strExp1 As String
+    Dim strExp1Id As String
+     Dim strExp2 As String
+    Dim strExp2Id As String
+    
+    Dim regEx As RegExp
+    Dim regChk As Boolean
+    Set regEx = New RegExp
+    
+    Dim cName As String
+    Dim cCode As String
+        
+    cmd.ActiveConnection = CurrentProject.Connection
+    cmd.CommandText = "DELETE * FROM T2;"
+    cmd.Execute
+    
+    recT.Open "T", CurrentProject.Connection
+    recP.Open "Tptn", CurrentProject.Connection
+        
+    Do Until recT.EOF
+        strExp1 = recT("exp1") & ""
+        strExp2 = recT("exp2") & ""
+        cName = func2(recT("cName"))
+        
+        strExp1Id = "PC"
+        strExp2Id = ",SP"
+        recP.MoveFirst
+    
+        Do Until recP.EOF
+            regEx.Pattern = recP("strSearch")
+            
+            regChk = regEx.Test(strExp1)
+            If regChk = True Then
+                strExp1Id = strExp1Id & "[" & recP("ID") & "]"
+                If recP("cDiv") = "【送料について】" Then
+                    strExp1 = regEx.Replace(strExp1, recP("strReplace") & cName & "】")
+                Else
+                    strExp1 = regEx.Replace(strExp1, recP("strReplace") & "")
+                End If
+            Else
+                If strExp1 = "" Then
+                    strExp1 = "【送料区分：" & cName & "】"
+                End If
+            End If
+            
+            regChk = regEx.Test(strExp2)
+            If regChk = True Then
+                strExp2Id = strExp2Id & "[" & recP("ID") & "]"
+                If recP("cDiv") = "【送料について】" Then
+                    strExp2 = regEx.Replace(strExp2, recP("strReplace2") & cName & "】")
+                Else
+                    strExp2 = regEx.Replace(strExp2, recP("strReplace2") & "")
+                End If
+            Else
+                If strExp2 = "" Then
+                    strExp2 = "【送料区分：" & cName & "】"
+                End If
+            End If
+            recP.MoveNext
+        Loop
+        
+        cCode = recT("cCode")
+        If IsNumeric(cCode) Then
+            cCode = Format(cCode, "00000000")
+        End If
+        
+        cmd.CommandText = "INSERT INTO T2 ( cCode, cName, exp1, exp2, exp1_after, exp2_after, ptnId ) " & _
+                            "VALUES ( '" & cCode & "','" & cName & "', '" & recT("exp1") & "', '" & recT("exp2") & "', '" & strExp1 & "', '" & strExp2 & "', '" & strExp1Id & strExp2Id & "');"
+        cmd.Execute
+                
+        recT.MoveNext
+    Loop
+End Sub
+
+Public Sub func5()
+    Dim rec1 As New ADODB.Recordset
+    Dim rec2 As New ADODB.Recordset
+    
+    Dim cmd As New ADODB.Command
+    
+    Dim np As String
+    Dim cash As String
+    
+    Dim strExp1 As String
+    Dim strExp2 As String
+    
+    Dim regEx As RegExp
+    Dim regChk As Boolean
+    Set regEx = New RegExp
+    
+    rec1.Open "SELECT T2.cCode, T2.cName, T2.exp1_after, T2.exp2_after, Tnp.np, Tnp.cash FROM T2 LEFT JOIN Tnp ON T2.cCode = Tnp.cCode WHERE (((Tnp.np)='○')) OR (((Tnp.cash)='○'));", CurrentProject.Connection
+    
+    Do Until rec1.EOF
+        np = rec1("np") & ""
+        cash = rec1("cash") & ""
+                                    
+            If np = "○" And cash = "○" Then
+                rec2.Open "SELECT Tptn2.strSearch, Tptn2.strReplace, Tptn2.np, Tptn2.cash, Tptn2.cDiv FROM Tptn2 WHERE (((Tptn2.np)='○') AND ((Tptn2.cash)='○')) ORDER BY Tptn2.ID;", CurrentProject.Connection
+            ElseIf np = "○" And cash = "" Then
+                rec2.Open "SELECT Tptn2.strSearch, Tptn2.strReplace, Tptn2.np, Tptn2.cash, Tptn2.cDiv FROM Tptn2 WHERE (((Tptn2.np)='○') AND ((Tptn2.cash) Is Null)) ORDER BY Tptn2.ID;", CurrentProject.Connection
+            ElseIf np = "" And cash = "○" Then
+                rec2.Open "SELECT Tptn2.strSearch, Tptn2.strReplace, Tptn2.np, Tptn2.cash, Tptn2.cDiv FROM Tptn2 WHERE (((Tptn2.np Is Null)) AND ((Tptn2.cash)='○')) ORDER BY Tptn2.ID;", CurrentProject.Connection
+            Else
+                Exit Do
+            End If
+        Do Until rec2.EOF
+            strExp1 = rec1("exp1_after") & ""
+            regEx.Pattern = rec2("strSearch")
+            
+            regChk = regEx.Test(strExp1)
+            If regChk = True Then
+                strExp1 = regEx.Replace(strExp1, rec2("strReplace") & "")
+            End If
+            
+            strExp2 = rec1("exp2_after") & ""
+            regEx.Pattern = rec2("strSearch")
+            
+            regChk = regEx.Test(strExp2)
+            If regChk = True Then
+                strExp2 = regEx.Replace(strExp2, rec2("strReplace") & "")
+            End If
+            
+            cmd.ActiveConnection = CurrentProject.Connection
+            cmd.CommandText = "UPDATE T2 SET exp1_after = '" & strExp1 & "' ,exp2_after = '" & strExp2 & "', ptnId = ptnId + '," & rec2("cDiv") & " ' WHERE cCode = '" & rec1("cCode") & "';"
+            cmd.Execute
+        
+        rec2.MoveNext
+        Loop
+        rec2.Close
+        rec1.MoveNext
+    Loop
+End Sub
