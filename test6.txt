@@ -201,3 +201,17 @@ Public Sub func5()
         rec1.MoveNext
     Loop
 End Sub
+
+Public Sub aaa()
+    Dim rec1 As New ADODB.Recordset
+    
+    rec1.Open "T2", CurrentProject.Connection
+    Do Until rec1.EOF
+        If StrComp(rec1("exp1_after"), rec1("exp2_after"), 0) = 0 Then
+'               Debug.Print "OK"
+        Else
+               Debug.Print "NG: " & rec1("cCode")
+        End If
+        rec1.MoveNext
+    Loop
+End Sub
