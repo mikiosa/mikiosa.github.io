@@ -1,0 +1,53 @@
+Option Compare Database
+
+'Microsoft ActiveX Data Objects *.* Library
+'Microsoft VBScript Regular Expression *.*
+
+'▼ Ty
+'ID  cCode   cName   exp1    img
+
+'▼ Tptn_y
+'ID  F1  F2  F3
+'1   yahoo_A_1_pc.html   ship-a.gif  https://shopping.c.yimg.jp/lib/*/ship-a.gif
+
+'▼ img.ps1
+'$path = "$HOME\Desktop\img"
+'$csv = Import-Csv $path\img.txt
+'$csv | ForEach-Object { Copy-Item "$path\$($_.img)" "$path\add_img\$($_.cCode)_20.gif"}
+
+'▼ Tr
+'ID  cCode   cName   exp1    img img2
+
+'▼ Tptn_r
+'ID  F1  F2
+'2   rakuten_A_1_pc.html https://image.rakuten.co.jp/*/cabinet/thum1/ship-a.gif
+
+Public Sub funcY()
+    Dim recP As New ADODB.Recordset
+    Dim cmd As New ADODB.Command
+    
+    recP.Open "Tptn_y", CurrentProject.Connection
+    
+    Do Until recP.EOF
+        cmd.ActiveConnection = CurrentProject.Connection
+        cmd.CommandText = "UPDATE Ty SET Ty.img = '" & recP("F2") & "' WHERE Ty.exp1 Like '%" & recP("F1") & "%';"
+        cmd.Execute
+    
+        recP.MoveNext
+    Loop
+End Sub
+
+Public Sub funcR()
+    Dim recP As New ADODB.Recordset
+    Dim cmd As New ADODB.Command
+    
+    recP.Open "Tptn_r", CurrentProject.Connection
+    
+    Do Until recP.EOF
+        cmd.ActiveConnection = CurrentProject.Connection
+        cmd.CommandText = "UPDATE Tr SET Tr.img2 = img & ' " & recP("F2") & "' WHERE Tr.exp1 Like '%" & recP("F1") & "%';"
+        cmd.Execute
+    
+        recP.MoveNext
+    Loop
+End Sub
