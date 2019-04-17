@@ -1,0 +1,73 @@
+<#
+function func1($method, $url1, $arrP) {
+    $Consumer_key = #"Your Consumer key"
+    $Access_token = #"Your Access token"
+
+    #▼ oauth_nonce生成
+    $rChar = 33..126 | ForEach-Object {[char]$_}
+    $strR = (Get-Random -InputObject $rChar -Count (Get-Random -Minimum 10 -Maximum 20)) -join ""
+    $BstrR = [Uri]::EscapeDataString([Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($strR)))
+
+    #▼ oauth_timestamp生成
+    $getDate = [int]((New-TimeSpan -Start ([DateTime]"1970/01/01") -End (Get-Date)).TotalSeconds)
+
+    #▼ oauth_signature生成
+    $oauthConsumerSecret = #"RMS_SERVICE_SECRET"
+    $oauthTokenSecret = #"RMS_LICENSE_KEYt"
+
+    $arr1 = @(
+        "oauth_consumer_key=$Consumer_key",
+        "oauth_nonce=$BstrR",
+        "oauth_signature_method=HMAC-SHA1",
+        "oauth_timestamp=$getDate",
+        "oauth_version=1.0",
+        "oauth_token=$Access_token"
+        )
+    $arr1 = $arr1 + $arrP
+
+    $arr2 = @(
+        $method,
+        [Uri]::EscapeDataString($url1),
+        [Uri]::EscapeDataString(($arr1 | Sort-Object) -join "&")
+        )
+    $arr2 = $arr2 -join "&"
+
+    $sha1 = New-Object System.Security.Cryptography.HMACSHA1
+    #$sha1.Key = ([System.Text.Encoding]::ASCII.GetBytes(($oauthConsumerSecret + "&" + $oauthTokenSecret)))
+    $sha1.Key = ([System.Text.Encoding]::ASCII.GetBytes(($oauthConsumerSecret + ":" + $oauthTokenSecret)))
+    $sha1CH = $sha1.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($arr2))
+    $b64p = [Uri]::EscapeDataString([System.Convert]::ToBase64String($sha1CH))
+
+    switch ($method) {
+        "GET" {
+            $arr1 += "oauth_signature=$b64p"
+            $arr1 = $arr1 -join "&"
+            $str1 = $url1 + "?" + $arr1
+
+            #Invoke-RestMethod $str1          
+        }
+        "POST" {
+            $str1 = $arr1[0..($arr1.Length - 2)] -join ","
+            $str1 += ",oauth_signature=$b64p"
+
+            $arrP = $arrP -join "&"
+            $str2 = $url1 + "?" + $arrP
+
+            #Invoke-RestMethod -Uri $str2 -Method Post -Headers @{"Authorization"="OAuth $str1"}
+        }
+    } 
+}
+
+#▼ GET
+$itemUri = "123456789"
+func1 "GET" "https://api.rms.rakuten.co.jp/es/1.0/item/get" @("itemUrl=$itemUri")
+#▼ POST
+#func1 "POST" "https://api.rms.rakuten.co.jp/es/1.0/item/get" @("itemUri=$itemUri")
+#>
+
+Add-Type -AssemblyName System.Web
+$authkey = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("RMS_SERVICE_SECRET:RMS_LICENSE_KEY"))
+$wc = New-Object System.Net.WebClient
+$wc.Headers.Add("Authorization", "ESA $authkey")
+$wc.Headers.Add("Content-Type", "text/xml;charset=UTF-8")
+$wc.UploadString("https://api.rms.rakuten.co.jp/es/1.0/item/get","itemUri=$itemUri")
