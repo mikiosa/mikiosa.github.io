@@ -1,3 +1,25 @@
+#■ ファイル階層作成
+#R階層を作り作成サムネイルをリネームしコピー
+#
+#item_code：商品コード
+#item_img：R画像URL文字列
+
+$csv = Import-Csv "C:\Users\*\Desktop\Tr.txt" -Encoding Default
+#カレントパス
+$cntPath = "C:\Users\*\Desktop\r"
+$csv | % {
+    $imgUrl = $_.item_img -split " "
+    $folderPath = [regex]::Matches($imgUrl[0],"https://.*?/(.*)/.*?.jpg") | % {$_.Groups[1].Value}
+    $filePath = [regex]::Matches($imgUrl[0],"https://.*?/(.*?.jpg)") | % {$_.Groups[1].Value}
+    $fileName = [regex]::Matches($imgUrl[0],"https://.*/(.*?.jpg)") | % {$_.Groups[1].Value}
+
+    #フォルダ作成
+    New-Item $cntPath\$folderPath -ItemType Directory -Force
+
+    #ファイルコピー
+    Copy-Item "$cntPath\$($fileName)" $cntPath\$filePath
+}
+
 <#
 function func1($method, $url1, $arrP) {
     $Consumer_key = #"Your Consumer key"
