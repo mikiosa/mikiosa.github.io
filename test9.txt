@@ -1,0 +1,60 @@
+▼ html
+<div class="container">
+    {{ITEMS_LOOP}}
+    <div class="tpl_item" style="display:none">
+        <a href="{{URL}}" target="{{TARGET}}">
+            <div class="tpl_image">
+                <img src="{{IMG}}" alt="">
+            </div>
+            <div class="tpl_name">
+                {{TITLE}}
+            </div>
+            <div class="tpl_catch_1">
+                {{DESCRIPTION}}
+            </div>
+                {{IF_FREE_TEXT_1}}
+                <div class="free_text_1" style="display:none">{{FREE_TEXT_1}}</div>
+                {{END_IF}}
+                {{IF_FREE_TEXT_2}}
+                <div class="free_text_2" style="display:none">{{FREE_TEXT_2}}</div>
+                {{END_IF}}
+        </a>
+    </div>
+    {{ITEMS_END}}
+</div>
+
+▼ js
+document.addEventListener('template_load', function () {
+    $(function () {
+            var preStart = new Date($(".free_text_1:first").text());
+            var preEnd = new Date($(".free_text_2:first").text());
+
+            //プレ開始日に1日加算
+            var preEnd_p1 = new Date(preEnd);
+            preEnd_p1.setDate(preEnd_p1.getDate() + 1);
+
+            var saleEnd = new Date($(".free_text_2:last").text());
+
+            //セール終了日に1日減算
+            var saleEnd_m1 = new Date(saleEnd);
+            saleEnd_m1.setDate(saleEnd_m1.getDate() - 1);
+
+        var tdy = new Date();
+            if (preStart > tdy || saleEnd <= tdy) {
+                //終了しました
+                $(".tpl_item:last").css("display", "");
+            } else if (preStart <= tdy && preEnd >= tdy) {
+                //まもなくスタート
+                $(".tpl_item:first").css("display", "");
+            } else if (preEnd < tdy && preEnd_p1 >= tdy) {
+                //スタート！
+                $(".tpl_item:nth-child(2)").css("display", "");
+            } else if (preEnd_p1 < tdy && saleEnd_m1 > tdy) {
+                //期間中
+                $(".tpl_item:nth-child(3)").css("display", "");
+            } else if (saleEnd_m1 <= tdy && saleEnd > tdy) {
+                //もうすぐ終了
+                $(".tpl_item:nth-child(4)").css("display", "");
+            }
+    });
+}, false);
