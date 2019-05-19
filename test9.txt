@@ -58,3 +58,95 @@ document.addEventListener('template_load', function () {
             }
     });
 }, false);
+
+▼js
+document.addEventListener('template_load', function () {
+    $(function () {
+        //表示配列取得
+        var arr_slice = window.parent.parentFunc();        
+        for (i in arr_slice) {
+            $(".tpl_item:nth-child(" + arr_slice[i] + ")").css("display", "");
+        }
+
+        //背景色
+        $(".tpl_item:nth-child(" + param.position + ")").css("background-color", "red");
+        //リンク削除
+        $(".tpl_item:nth-child(" + param.position + ")").children().contents().unwrap();
+    });
+}, false);
+
+▼ html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script id="jQueryTag" src="./index_files/jquery-3.2.1.min.js"></script>
+</head>
+<body>
+    <div id="arr_log"></div>
+    <div id="c1" class="container" style="display:none">
+        <p>1</p>
+        <iframe src="./index.html#!id=8325&position=1" width="800px" height="200px" frameborder="0" scrolling="no"></iframe><br />
+    </div>
+    <div id="c2" class="container" style="display:none">
+        <p>2</p>
+        <iframe src="./index.html#!id=8325&position=2" width="800px" height="200px" frameborder="0" scrolling="no"></iframe><br />
+    </div>
+    <div id="c3" class="container" style="display:none">
+        <p>3</p>
+        <iframe src="./index.html#!id=8325&position=3" width="800px" height="200px" frameborder="0" scrolling="no"></iframe><br />
+    </div>
+    <div id="c4" class="container" style="display:none">
+        <p>4</p>
+        <iframe src="./index.html#!id=8325&position=4" width="800px" height="200px" frameborder="0" scrolling="no"></iframe><br />
+    </div>
+    <div id="c5" class="container" style="display:none">
+        <p>5</p>
+        <iframe src="./index.html#!id=8325&position=5" width="800px" height="200px" frameborder="0" scrolling="no"></iframe><br />
+    </div>
+    <script type="text/javascript">
+
+        var arr_slice;
+
+        $(function () {
+
+            //数値配列作成
+            var arr100 = new Array();
+            for (var i = 1; i < 100; ++i) {
+                arr100.push(i);
+            }
+
+            //配列ランダム並び替え
+            for (var i = arr100.length - 1; i > 0; i--) {
+
+                var r = Math.floor(Math.random() * (i + 1));
+
+                var tmp = arr100[i];
+                arr100[i] = arr100[r];
+                arr100[r] = tmp;
+            }
+
+            //配列フィルタ（範囲1..4）
+            arr_slice = arr100.filter(function (value) {
+                return value < $('.container').length;
+
+            }).slice(1, 4);
+
+            //配列確認
+            document.getElementById("arr_log").innerText = arr_slice;
+
+            //該当要素表示
+            for (i in arr_slice) {
+                $(".container:nth-child(" + (arr_slice[i] + 1) + ")").css("display", "");
+            };
+
+        })();
+
+        //小フレームより呼出し
+        function parentFunc() {
+            return arr_slice;
+        };
+    </script>
+</body>
+</html>
