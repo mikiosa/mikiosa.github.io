@@ -150,3 +150,24 @@ document.addEventListener('template_load', function () {
     </script>
 </body>
 </html>
+
+▼ js
+document.addEventListener('template_load', function(){    
+    $('.tpl_item').each(function (i, e) {
+        //テキスト取得
+        var $obj_txt = $(this).find('.tpl_catch span');
+        var $str = $obj_txt.text();
+
+        //日付作成
+        var dt = new Date(2019, $str.slice(0,1) - 1,
+            $str.substring(2, $str.indexOf('(')),
+            $str.substr(-5, 2), $str.slice(-2));
+
+        //過ぎたらグレースケール
+        if (dt < new Date()) {
+            var $obj = $(this).find('.tpl_image img');
+            $obj.attr('src', ($obj.attr('src')).replace('.jpg', '_gr.jpg'));
+            $obj_txt.css("background-color", "#808080");
+        }
+    });
+ }, false);
