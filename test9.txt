@@ -168,6 +168,9 @@ document.addEventListener('template_load', function(){
             var $obj = $(this).find('.tpl_image img');
             $obj.attr('src', ($obj.attr('src')).replace('.jpg', '_gr.jpg'));
             $obj_txt.css("background-color", "#808080");
+
+            //移動
+            $('.tpl_item:last').after($(this));
         }
     });
  }, false);
