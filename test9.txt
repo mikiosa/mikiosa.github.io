@@ -174,3 +174,71 @@ document.addEventListener('template_load', function(){
         }
     });
  }, false);
+
+▼ js
+document.addEventListener('template_load', function(){ 
+    $(function () {
+        var op2 = data[0].items[0].option2;
+        var op3 = data[0].items[0].option3;
+
+        var preStart = new Date(data[0].items[0].use_name);
+        var preEnd = new Date(data[0].items[0].use_catch);
+        
+        //プレ開始日に1日加算
+        var preEnd_p1 = new Date(preEnd);
+        preEnd_p1.setDate(preEnd_p1.getDate() + 1);
+
+        var saleEnd = new Date(data[0].items[0].option1);
+
+        //セール終了日に1日減算
+        var saleEnd_m1 = new Date(saleEnd);
+        saleEnd_m1.setDate(saleEnd_m1.getDate() - 1);
+
+        var tdy = new Date(2019,5,11,20,0,0);
+        if (preStart > tdy || saleEnd <= tdy) {
+            //終了しました
+            $(".tpl_item:last").css("display", "");
+        } else if (preStart <= tdy && preEnd >= tdy) {
+            //まもなくスタート
+            $(".tpl_item:first").css("display", "");
+        } else if (preEnd < tdy && preEnd_p1 >= tdy) {
+            //スタート！
+            $(".tpl_item:nth-child(2)").css("display", "");
+        } else if (preEnd_p1 < tdy && saleEnd_m1 > tdy) {
+            //期間中
+            $(".tpl_item:nth-child(3)").css("display", "");
+        } else if (saleEnd_m1 <= tdy && saleEnd > tdy) {
+            //もうすぐ終了
+            $(".tpl_item:nth-child(4)").css("display", "");
+        }        
+        
+    });
+ }, false);
+ 
+ ▼ js
+ document.addEventListener('template_load', function(){ 
+    $('.tpl_item').each(function (i, e) {
+        //テキスト取得
+        var $obj_txt = $(this).find('.tpl_catch');
+        var $str = $obj_txt.text();
+
+        //日付作成
+        var dt = new Date(2019, $str.slice(0,1) - 1,
+            $str.substring(2, $str.indexOf('(')),
+            $str.substr(-5, 2), $str.slice(-2));
+
+        //過ぎたらグレースケール
+        if (dt < new Date(2019,5,7)) {
+            var $obj = $(this).find('.tpl_image img');
+            $obj.attr('src', ($obj.attr('src')).replace('.jpg', '_gr.jpg'));
+			
+            $obj_txt.css("background-color", "#808080");
+			
+            var $obj_rank = $(this).find('.tpl_free_text span');
+			$obj_rank.css("background-color", "#808080");
+			
+            //移動
+            $('.tpl_item:last').after($(this));
+        }
+    });
+ }, false);
