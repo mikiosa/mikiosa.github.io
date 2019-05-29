@@ -242,3 +242,8 @@ document.addEventListener('template_load', function(){
         }
     });
  }, false);
+
+▼ json
+mallassist.ajax_cache['http://localhost:58397/' + mallassist.iframe_info.data[8325].list].data[0].items[0].start_datetime
+mallassist.ajax_cache['http://localhost:58397/' + mallassist.iframe_info.data[8325].list].data[0].items[0].end_datetime
+mallassist.ajax_cache['http://localhost:58397/' + mallassist.iframe_info.data[8325].list].data[0].items[1].end_datetime
