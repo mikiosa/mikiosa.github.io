@@ -1,0 +1,62 @@
+Option Compare Database
+'Microsoft ActiveX Data Objects *.* Library
+'Microsoft VBScript Regular Expression *.*
+
+'▼ T
+'ID  vCode   cCode   cName   cColor
+'2   51653700    51653700    日よけ 雨よけ 撥水 / クールサマーオーニング ウォーターガード ベージュ 2000 /C
+'3   v-38343600  38344300    テーブル イス セット 机 椅子 / ティエラ カフェテーブル ダークマイカ3点セット /B ホワイト
+
+'▼ T2
+'ID  vCode, exp1, exp2
+
+Public Sub func1()
+    Dim recCnt As New ADODB.Recordset
+    Dim recT As New ADODB.Recordset
+    
+    Dim strSum As String
+    Dim strSum2 As String
+    Dim str1 As String
+    Dim cmd As New ADODB.Command
+    
+    Dim strExp1 As String
+    
+    Dim regEx As RegExp
+    Set regEx = New RegExp
+    regEx.Pattern = "^.*/(.*?)/(A|B|C|D|E)"
+        
+    cmd.ActiveConnection = CurrentProject.Connection
+    cmd.CommandText = "DELETE * FROM T2;"
+    cmd.Execute
+   
+    recCnt.Open "SELECT T.vCode, Count(T.vCode) AS vCode_cnt FROM T GROUP BY T.vCode ORDER BY T.vCode;", CurrentProject.Connection
+   
+    Do Until recCnt.EOF
+        recT.Open "SELECT T.vCode, T.cCode, T.cName, T.cColor FROM T WHERE (((T.vCode) = '" & recCnt("vCode") & "')) ORDER BY T.cCode;", CurrentProject.Connection
+         strExp1 = Trim(regEx.Replace(recT("cName"), "$1"))
+         
+        strSum = "■商品名：" & strExp1 & "<br>" & vbNewLine
+        Do Until recT.EOF
+            If recCnt("vCode_cnt") = 1 Then
+                strSum = strSum & "■コード：" & recT("cCode") & "<br>" & vbNewLine
+            Else
+                strSum = strSum & "■コード：" & recT("cCode") & "　" & recT("cColor") & "<br>" & vbNewLine
+            End If
+            
+            recT.MoveNext
+        Loop
+        
+        strSum2 = "<table border=""1"" cellspacing=""0"" bordercolor=""#000"" cellpadding=""10"" width=""100%"">" & vbNewLine & _
+        "<tbody><tr>" & vbNewLine & _
+        "<td bordercolor=""#fff""><font color=""#000"" size=""+1"">" & strSum & "</font></td>" & vbNewLine & _
+        "</tr>" & vbNewLine & _
+        "</tbody></table>" & vbNewLine
+
+        cmd.CommandText = "INSERT INTO T2 (  vCode, exp1, exp2 ) " & _
+            "VALUES ( '" & recCnt("vCode") & "','" & strSum & "','" & strSum2 & "');"
+        cmd.Execute
+        
+        recT.Close
+        recCnt.MoveNext
+    Loop
+End Sub
