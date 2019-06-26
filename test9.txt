@@ -257,3 +257,21 @@ if (data.head) loadJs((data.head).replace('./','https://www.rakuten.ne.jp/gold/*
  
 // 完了イベント
 $('.tpl_favorite_button').remove();
+
+▼ js
+document.addEventListener('template_load', function(){ 
+    $('.tpl_price').each(function (i, e) {
+
+        //価格文字列取得
+        var str_price = $(this).text();
+        //5%OFF
+        var sale_price = Number(str_price.replace(/円|,/g, '')) * 0.95;
+        //切り捨て、カンマ表記
+        sale_price = (Math.floor(sale_price)).toLocaleString();
+
+        //表示
+        $(this).text(sale_price);
+        $(this).append('<small>円</small>');
+
+    });	
+}, false);
