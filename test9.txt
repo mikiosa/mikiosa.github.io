@@ -388,3 +388,16 @@ document.addEventListener('template_load', function () {
     });
 
 }, false);
+
+▼ js
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $(window).on('message', function (e) {
+                var obj = e.originalEvent.data;
+                if (obj === "loaded") {
+                    $('#fff').contents().find('.swiper-pagination-1').before('<h2 class="ma_section-title-large title has-text-centered is-1 is-mincho is-red">＼クーポンを使ってお得にゲット！／</h2>');
+                }
+            });                                   
+        });     
+    </script>
