@@ -401,3 +401,99 @@ document.addEventListener('template_load', function () {
             });                                   
         });     
     </script>
+
+▼ html
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- META -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="あああああああああああああ" />
+    <!-- /META -->
+    <!-- TITLE -->
+    <title>ああああああああああああ</title>
+    <!-- /TITLE -->
+    <link rel="SHORTCUT ICON" href="http://ああああああああああああ-garden.com/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="https://www.rakuten.ne.jp/gold/あああああああああああああ/toppage/style/styles.css" />
+    <link rel="stylesheet" href="http://あああああああああああああ-garden.com/mallassist/iframe/_inc/menu_item.css" />
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <!-- /jQuery -->
+    <!-- Layout HEAD -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css" />
+    <!-- /Layout HEAD -->
+    <!-- Page HEAD -->
+    <!-- /Page HEAD -->
+    <!-- 共通CSS -->
+    <link href="https://www.rakuten.ne.jp/gold/ああああああああ/mallassist/css/common.css" rel="stylesheet" />
+    <!-- /共通CSS -->
+    <!-- Layout CSS -->
+    ---------------------------------------------------------------
+    <!-- /Layout CSS -->
+    <!-- Page CSS -->
+    ---------------------------------------------------------------
+    <!-- /Page CSS -->
+    <style>
+        /* ==================================================== pagetop */
+        .pagetop {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: block;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(122, 149, 8, 0.8);
+            z-index: 100;
+            opacity: 0;
+            -webkit-transition: .3s;
+            transition: .3s;
+            pointer-events: none;
+        }
+
+            .pagetop:hover {
+                background: rgba(122, 149, 8, 1);
+            }
+
+            .pagetop:after {
+                content: "";
+                display: block;
+                width: 50px;
+                height: 50px;
+                background: url("http://あああああああああああああ-garden.com/toppage/images/arrow_top.png") no-repeat center / 30px;
+            }
+
+            .pagetop.show {
+                opacity: 1;
+                pointer-events: auto;
+            }
+    </style>
+</head>
+
+<body>
+    <a name="pagetop" target="_top" id="pagetop"></a>
+    <a href="#pagetop" target="_top" class="pagetop"></a>
+
+    <!-- Layout HTML_UPPER -->
+    <div id="tpl_layout_page_wrapper">
+        <div id="include_header"></div>
+        <div id="tpl_layout_main_body" class="">
+ ----------------------------------------------------------------------
+    <!-- /Layout HTML_LOWER -->
+    </div>
+    </div>
+    <div id="include_footer"></div>
+    </div>
+    <!-- /Layout HTML_LOWER -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="../mallassist/iframe/_inc/loader.js"></script>
+    <script>loadHtml("../mallassist/iframe/_inc/", "header", "#include_header");</script>
+    <script>loadHtml("../mallassist/iframe/_inc/", "footer", "#include_footer");</script>
+    <script src="https://www.rakuten.ne.jp/gold//toppage/js/scripts.js"></script>
+</body>
+</html>
+
+▼ js
+$('.tpl_box > .tpl_link_button').css('width', '100%');
