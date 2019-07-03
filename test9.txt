@@ -497,3 +497,14 @@ document.addEventListener('template_load', function () {
 
 ▼ js
 $('.tpl_box > .tpl_link_button').css('width', '100%');
+
+▼ iframe
+//子
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            var contentsHeight = $('#mall_assist_accessory_content').height();
+            $('#japanese-fountain_01', parent.document).css({ height: (contentsHeight) });
+        });
+//親	
+<iframe src="./japanese-fountain_01.html" frameborder="0" scrolling="no" width="100%" id="japanese-fountain_01"></iframe>	
