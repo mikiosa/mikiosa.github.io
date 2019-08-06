@@ -1,0 +1,2 @@
+var window_width = $(window).width();
+$('#gallery #entry ul.thumbs li a').css('height', window_width);
