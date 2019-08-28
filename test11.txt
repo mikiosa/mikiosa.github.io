@@ -1,2 +1,5 @@
 var window_width = $(window).width();
 $('#gallery #entry ul.thumbs li a').css('height', window_width);
+
+
+javascript: document.body.innerHTML = document.body.innerHTML.replace(/<input type="text" name="name" size="100%" value=".* \/ (.*?) \/.">/g, '<input type="text" name="name" size="100%" value="$1">'); focus();
