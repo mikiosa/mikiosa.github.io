@@ -3,3 +3,9 @@ $('#gallery #entry ul.thumbs li a').css('height', window_width);
 
 
 javascript: document.body.innerHTML = document.body.innerHTML.replace(/<input type="text" name="name" size="100%" value=".* \/ (.*?) \/.">/g, '<input type="text" name="name" size="100%" value="$1">'); focus();
+
+
+            var w = $('.tpl_image img').width();
+            $(".tpl_item").each(function (e) {
+                $(this).find('img').css('height', w);
+            });
