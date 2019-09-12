@@ -1,0 +1,84 @@
+Option Compare Database
+'データ取得
+Private Sub btn_get_Click()
+    If SysCmd(acSysCmdGetObjectState, acForm, "Fmain") <> 0 Then
+        Forms!Fmain!txt_item_name = Me.fName.Value
+        Forms!Fmain!cob_kbn = Me.fShipping.Value
+    End If
+    
+    Dim cmd As New ADODB.Command
+    cmd.ActiveConnection = CurrentProject.Connection
+    cmd.CommandText = "DELETE * FROM Titem_info;"
+    cmd.Execute
+
+    cmd.CommandText = "DELETE * FROM Titem_code;"
+    cmd.Execute
+
+    Dim recTinfo As New ADODB.Recordset
+    Dim recTimp As New ADODB.Recordset
+    recTimp.Open "SELECT Timp_data.fSize, Timp_data.fWeight, Timp_data.fMaterial, Timp_data.fOther " & _
+        "FROM Timp_data " & _
+        "WHERE (((Timp_data.ID)=" & Me.ID.Value & "));", CurrentProject.Connection
+    
+    recTinfo.Open "Titem_info", CurrentProject.Connection, , adLockOptimistic
+    recTinfo.AddNew
+    recTinfo("f1") = "サイズ"
+    recTinfo("f2") = recTimp("fSize")
+    recTinfo.AddNew
+    recTinfo("f1") = "重量"
+    recTinfo("f2") = recTimp("fWeight")
+    recTinfo.AddNew
+    recTinfo("f1") = "材質"
+    recTinfo("f2") = recTimp("fMaterial")
+    recTinfo.AddNew
+    recTinfo("f1") = "備考"
+    recTinfo("f2") = recTimp("fOther")
+    recTinfo.Update
+    recTinfo.Close
+    recTimp.Close
+    
+    Dim recTcode As New ADODB.Recordset
+    recTcode.Open "Titem_code", CurrentProject.Connection, , adLockOptimistic
+    
+    recTimp.Open "SELECT Timp_data.fSize, Timp_data.fWeight, Timp_data.fMaterial, Timp_data.fOther " & _
+    "FROM Timp_data " & _
+    "WHERE (((Timp_data.ID)=" & Me.ID.Value & "));", CurrentProject.Connection
+    
+    'バリエーション判定
+    If IsNull(Me.fcode_v.Value) Then
+        '無
+        cmd.CommandText = "INSERT INTO Titem_code ( code, color ) " & _
+            "SELECT Timp_data.fcode, Timp_data.fColor " & _
+            "FROM Timp_data " & _
+            "WHERE (((Timp_data.fcode)='" & Me.fcode.Value & "'));"
+        cmd.Execute
+        
+        Forms!Fmain!txt_model = Me.fModel.Value
+    Else
+        '有
+        cmd.CommandText = "INSERT INTO Titem_code ( code, color ) " & _
+            "SELECT Timp_data.fcode, Timp_data.fColor " & _
+            "FROM Timp_data " & _
+            "WHERE (((Timp_data.fcode_v)='" & Me.fcode_v.Value & "'));"
+        cmd.Execute
+        
+        Dim recTmodel As New ADODB.Recordset
+        recTmodel.Open "SELECT Timp_data.fModel " & _
+            "FROM Timp_data " & _
+            "WHERE (((Timp_data.fcode_v)='" & Me.fcode_v.Value & "'));", CurrentProject.Connection
+        Forms!Fmain!txt_model = Trim(recTmodel.GetString(, , , " "))
+        
+    End If
+    
+    recTimp.Close
+    
+    If SysCmd(acSysCmdGetObjectState, acForm, "Fmain") <> 0 Then
+        Forms!Fmain!sub_item_info.Requery
+        Forms!Fmain!sub_item_code.Requery
+    End If
+    
+End Sub
+
+Private Sub Form_Load()
+    Me.ID.Visible = False
+End Sub
