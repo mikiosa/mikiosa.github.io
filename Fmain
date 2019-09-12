@@ -1,0 +1,475 @@
+'Microsoft Office 16.0 Object Library
+
+Option Compare Database
+
+'CSVデータ取得
+Private Sub btn_imp_data_Click()
+    Dim cmd As New ADODB.Command
+    cmd.ActiveConnection = CurrentProject.Connection
+    cmd.CommandText = "DELETE * FROM Timp_data;"
+    cmd.Execute
+    
+    Dim filePath As String
+    filePath = GetFilePath
+    
+    If filePath = "" Then
+        Exit Sub
+    End If
+    
+    Set objFSO = CreateObject("Scripting.FileSystemObject")
+        
+    Dim recImp As New ADODB.Recordset
+    Dim recCsv As New ADODB.Recordset
+        
+    Dim objCn As New ADODB.Connection
+    With objCn
+        .Provider = "Microsoft.Jet.OLEDB.4.0"
+        .Properties("Extended Properties") = "Text;HDR=YES"
+        .Properties("Data Source") = objFSO.GetParentFolderName(filePath) & "\"
+        .Open
+    End With
+    recCsv.Open "SELECT * FROM [" & objFSO.GetFileName(filePath) & "];", objCn
+    
+    recImp.Open "Timp_data", CurrentProject.Connection, , adLockOptimistic
+    Do Until recCsv.EOF
+        recImp.AddNew
+        recImp("fcode") = recCsv(0)
+        recImp("fcode_v") = recCsv(1)
+        recImp("fName") = recCsv(2)
+        recImp("fColor") = recCsv(3)
+        recImp("fShipping") = recCsv(4)
+        recImp("fModel") = recCsv(5)
+        recImp("fSize") = recCsv(6)
+        recImp("fWeight") = recCsv(7)
+        recImp("fMaterial") = recCsv(8)
+        recImp("fOther") = recCsv(9)
+        recCsv.MoveNext
+    Loop
+    recImp.Update
+    
+    objCn.Close
+    Set objCn = Nothing
+    
+    Me.Fimp_data.Requery
+End Sub
+
+'ファイルダイアログ
+Private Function GetFilePath() As String
+    Dim intRet As Integer
+
+    With Application.FileDialog(msoFileDialogOpen)
+        .Title = "ファイルを開くダイアログ"
+        .Filters.Clear
+        .Filters.Add "CSVファイル", "*.csv"
+        .FilterIndex = 1
+        .AllowMultiSelect = False
+        .InitialFileName = CurrentProject.Path
+        intRet = .Show
+
+        If intRet <> 0 Then
+          GetFilePath = Trim(.SelectedItems.Item(1))
+        Else
+          GetFilePath = ""
+        End If
+    End With
+End Function
+
+'商品名/コード表作成 - PC
+Private Sub btn_item_code_pc_Click()
+    func_item_code "PC"
+End Sub
+'商品名/コード表作成 - PC
+Private Sub btn_item_code_sp_Click()
+    func_item_code "SP"
+End Sub
+'商品名/コード表作成
+Private Sub func_item_code(strCat As String)
+    Dim db As Database
+    Dim rs As Recordset
+    Dim rs_tmp As Recordset
+    Dim str1 As String
+    Dim str2 As String
+    
+    Set db = CurrentDb()
+    Set rs = db.OpenRecordset("Titem_code", dbOpenTable)
+    Set rs_tmp = db.OpenRecordset("SELECT Titem_tmp.fSource " & _
+        "FROM Titem_tmp " & _
+        "WHERE (((Titem_tmp.fStore)='" & Me.cob_store.Value & "') AND " & _
+            "((Titem_tmp.fCategory)='" & strCat & "') AND " & _
+            "((Titem_tmp.fSubCategory)='item_code')) " & _
+            "ORDER BY Titem_tmp.ID;")
+    
+    rs_tmp.MoveFirst
+    If IsNull(Me.txt_item_name.Value) Then
+        Me.txt_item_name.Value = ""
+    End If
+    If IsNull(rs_tmp.Fields(0)) Then
+        Exit Sub
+    End If
+    str1 = Replace(rs_tmp.Fields(0).Value, "{{item_name}}", Me.txt_item_name.Value) + vbNewLine
+    rs_tmp.MoveNext
+    
+    Do Until rs.EOF
+        If IsNull(rs.Fields("code").Value) = False Then
+            str2 = rs.Fields("code").Value
+            
+            If IsNull(rs.Fields("color").Value) = False Then
+                str2 = str2 + "　" + rs.Fields("color").Value
+            End If
+            str1 = str1 + Replace(rs_tmp.Fields(0).Value, "{{item_code_color}}", str2) + vbNewLine
+        End If
+        
+        rs.MoveNext
+    Loop
+    
+    rs_tmp.MoveLast
+    If IsNull(rs_tmp.Fields(0)) = False Then
+        str1 = str1 + rs_tmp.Fields(0)
+    End If
+
+    Me.txt_output.Value = str1
+    
+    Set rs = Nothing
+    Set rs_tmp = Nothing
+    Set db = Nothing
+End Sub
+
+'商品情報作成 - PC
+Private Sub btn_item_info_pc_Click()
+    func_item_info "PC"
+End Sub
+'商品情報作成 - SP
+Private Sub btn_item_info_sp_Click()
+    func_item_info "SP"
+End Sub
+'商品情報作成
+Private Sub func_item_info(strCat As String)
+    Dim db As Database
+    Dim rs As Recordset
+    Dim rs_tmp As Recordset
+    Dim str1 As String
+    
+    Set db = CurrentDb()
+    Set rs = db.OpenRecordset("Titem_info", dbOpenTable)
+    Set rs_tmp = db.OpenRecordset("SELECT Titem_tmp.fSource " & _
+        "FROM Titem_tmp " & _
+        "WHERE (((Titem_tmp.fStore)='" & Me.cob_store.Value & "') AND " & _
+            "((Titem_tmp.fCategory)='" & strCat & "') AND " & _
+            "((Titem_tmp.fSubCategory)='item_info')) " & _
+            "ORDER BY Titem_tmp.ID;")
+    
+    rs_tmp.MoveFirst
+    If IsNull(rs_tmp.Fields(0)) Then
+        Exit Sub
+    End If
+    str1 = rs_tmp.Fields(0) + vbNewLine
+    rs_tmp.MoveNext
+    Do Until rs.EOF
+        If IsNull(rs.Fields("f2").Value) = False Then
+            str1 = str1 + Replace((Replace(rs_tmp.Fields(0).Value, "{{th}}", rs.Fields("f1").Value)), "{{td}}", rs.Fields("f2").Value) + vbNewLine
+        End If
+        
+        rs.MoveNext
+    Loop
+    
+    rs_tmp.MoveLast
+    If IsNull(rs_tmp.Fields(0)) = False Then
+        str1 = str1 + rs_tmp.Fields(0)
+    End If
+    Me.txt_output.Value = str1
+    
+    Set rs = Nothing
+    Set rs_tmp = Nothing
+    Set db = Nothing
+End Sub
+
+Private Sub btn_item_name_Click()
+    Me.txt_output.Value = Trim(Me.list_kyd.Value) + " / " + Trim(Me.txt_item_name.Value) + " /" + Me.cob_kbn.Value
+End Sub
+
+'送料区分文字列作成 - PC
+Private Sub btn_kbn_pc_Click()
+    func_kbn "PC"
+End Sub
+'送料区分文字列作成 - SP
+Private Sub btn_kbn_sp_Click()
+    func_kbn "SP"
+End Sub
+'送料区分文字列作成
+Private Sub func_kbn(strCat As String)
+    Dim db As Database
+    Dim rs As Recordset
+    
+    Dim strSql As String
+    strSql = "SELECT Tkbn.fSource " & _
+        "FROM Tkbn " & _
+        "WHERE (((Tkbn.fKbn)='" & Me.cob_kbn.Value & "') AND " & _
+            "((Tkbn.fStore)='" & Me.cob_store.Value & "') AND  " & _
+            "((Tkbn.fCategory)='" & strCat & "') AND  " & _
+            "((Tkbn.fCash)=" & Me.chk_kbn1.Value & ") AND  " & _
+            "((Tkbn.fnp)=" & Me.chk_kbn2.Value & "));"
+    
+    Set db = CurrentDb()
+    Set rs = db.OpenRecordset(strSql)
+    
+    Me.txt_output.Value = rs.Fields(0).Value
+    
+    Set rs = Nothing
+    Set db = Nothing
+End Sub
+
+'型番文字列作成
+Private Sub btn_model_Click()
+    Dim db As Database
+    Dim rs As Recordset
+    Dim rs_tmp As Recordset
+    Dim str1 As String
+    
+    Set db = CurrentDb()
+    Set rs = db.OpenRecordset("Titem_info", dbOpenTable)
+    Set rs_tmp = db.OpenRecordset("SELECT Titem_tmp.fSource " & _
+        "FROM Titem_tmp " & _
+        "WHERE (((Titem_tmp.fStore)='" & Me.cob_store.Value & "') AND " & _
+            "((Titem_tmp.fSubCategory)='item_model')) " & _
+            "ORDER BY Titem_tmp.ID;")
+    rs_tmp.MoveFirst
+    If IsNull(rs_tmp.Fields(0)) Then
+        Exit Sub
+    End If
+
+    Me.txt_output.Value = Replace(rs_tmp.Fields(0).Value, "{{item_model}}", Me.txt_model.Value)
+          
+    Set rs = Nothing
+    Set rs_tmp = Nothing
+    Set db = Nothing
+End Sub
+
+'置換ボタンクリック
+Private Sub btn_replace_Click()
+    '店舗
+    Dim strStore As String
+    strStore = Me.cob_store.Value
+    
+    '置換フィールド
+    Dim strSearch As String
+    If IsNull(Me.cob_filed.Value) Then
+        Exit Sub
+    End If
+    strSearch = Me.cob_filed.Value
+    
+    '検索パターン
+    Dim strPtn As String
+    strPtn = Me.txt_replace_start.Value & "(.|\n)*?" & Me.txt_replace_end.Value
+    
+    '置換文字列
+    Dim strReplace As String
+    If IsNull(Me.txt_replace_str.Value) Then
+        Exit Sub
+    End If
+    strReplace = Me.txt_replace_str.Value
+    
+    Dim recT As New ADODB.Recordset
+    Dim recTrep As New ADODB.Recordset
+    
+    Dim cmd As New ADODB.Command
+    Dim strExp1 As String
+    
+    Dim regEx As RegExp
+    Dim regChk As Boolean
+    Set regEx = New RegExp
+    Dim mc As MatchCollection
+    Dim strMatches As String
+    
+        
+    cmd.ActiveConnection = CurrentProject.Connection
+    cmd.CommandText = "DELETE * FROM Trep;"
+    cmd.Execute
+    
+    recT.Open strStore, CurrentProject.Connection
+    
+    'コードフィールド名
+    Dim strCode As String
+    strCode = recT.Fields(2).Name
+    strExp1 = recT(strSearch) & ""
+    regEx.Pattern = strPtn
+    regEx.Global = True
+    
+    Do Until recT.EOF
+        regChk = regEx.Test(strExp1)
+        If regChk = True Then
+            Set mc = regEx.Execute(strExp1)
+            strExp1 = regEx.Replace(strExp1, strReplace)
+            
+            For Each m In mc
+                strMatches = strMatches & m.Value & vbNewLine & "-------------------" & vbNewLine
+            Next m
+            
+            cmd.CommandText = "INSERT INTO Trep ( cCode, exp1_before, exp1_after, repParts ) " & _
+                                "VALUES ( '" & recT(strCode) & "', '" & recT(strSearch) & "', '" & strExp1 & "', '" & strMatches & "');"
+            cmd.Execute
+        Else
+
+        End If
+        recT.MoveNext
+    Loop
+    Me.ume_table.SourceObject = "Fsub1"
+    Me.ume_table.Form.RecordSource = "SELECT Trep.cCode, Trep.exp1_before, Trep.exp1_after, Trep.repParts FROM Trep;"
+End Sub
+'検索
+Private Sub btn_search_Click()
+    Dim dbs As Database
+    Dim qdf As QueryDef
+    Set dbs = CurrentDb
+    dbs.QueryDefs.Refresh
+    For Each qdf In dbs.QueryDefs
+        If qdf.Name = "Q検索結果" Then
+            dbs.QueryDefs.Delete qdf.Name
+        End If
+    Next qdf
+    
+
+    Dim strSql As String
+    
+    strSql = "SELECT * FROM " & Me.cob_store.Value & " WHERE " & Me.cob_filed.Value & " like '*" & Me.txt_search.Value & "*';"
+    Set qdf = CurrentDb.CreateQueryDef("Q検索結果", strSql)
+    Set qdf = Nothing
+    
+'   Me.ume_table.Form.Requery
+Me.ume_table.SourceObject = "クエリ.Q検索結果"
+   
+End Sub
+
+'文書チェック
+Private Sub btn_str_chk_Click()
+    Dim str1 As String
+    Dim db As Database
+    Dim rs As Recordset
+    Dim arrId() As String
+    Dim i As Integer
+    i = 0
+     Dim regEx As RegExp
+    Dim regChk As Boolean
+    Set regEx = New RegExp
+    
+'    arrId = "21,32,25"
+
+    str1 = Me.txt_chk.Value
+    
+    Set db = CurrentDb()
+    Set rs = db.OpenRecordset("Tstr_chk", dbOpenTable)
+    Do Until rs.EOF
+        regEx.Pattern = rs.Fields(1).Value
+        regChk = regEx.Test(str1)
+        If regChk = True Then
+            str1 = regEx.Replace(str1, "<font color=red>" + rs.Fields(1).Value + "</font>")
+            ReDim Preserve arrId(i + 1)
+            arrId(i) = rs.Fields(0).Value
+            i = i + 1
+        End If
+'        str1 = Replace(str1, rs.Fields(1).Value, "<font color=red>" + rs.Fields(1).Value + "</font>")
+        rs.MoveNext
+    Loop
+          
+    Set rs = Nothing
+    Set db = Nothing
+    
+    Me.txt_chk.Value = str1
+    
+    With Me.list_chk
+        .RowSourceType = "Table/Query"
+        .ColumnCount = 3
+        .RowSource = "SELECT Tstr_chk.ID, Tstr_chk.f1, Tstr_chk.f2 " & _
+            "FROM Tstr_chk " & _
+            "WHERE ID in (" & Join(arrId, ",") & ");"
+'        .Requery
+    End With
+    
+End Sub
+
+'区分コンボボックス変更時
+Private Sub cob_kbn_AfterUpdate()
+    Dim db As Database
+    Dim rs_tmp As Recordset
+    Dim str1 As String
+    
+    Set db = CurrentDb()
+    Set rs_tmp = db.OpenRecordset("SELECT Titem_tmp.fSource " & _
+        "FROM Titem_tmp " & _
+        "WHERE (((Titem_tmp.fCategory)='" & Me.cob_kbn.Value & "') AND " & _
+            "((Titem_tmp.fSubCategory)='kbn')) " & _
+            "ORDER BY Titem_tmp.ID;")
+    rs_tmp.MoveFirst
+    If IsNull(rs_tmp.Fields(0)) Then
+        Exit Sub
+    End If
+
+    Me.txt_output.Value = rs_tmp.Fields(0).Value
+
+    Set rs_tmp = Nothing
+    Set db = Nothing
+End Sub
+
+Private Sub cob_store_AfterUpdate()
+
+    Me.cob_filed.Value = ""
+    
+    Dim db As Database
+    Dim rs As Recordset
+    
+    Set db = CurrentDb()
+    Set rs = db.OpenRecordset(Me.cob_store.Value, dbOpenTable)
+    
+    With Me.cob_filed
+        .RowSource = ""
+        .RowSourceType = "Value List"
+        
+        For Each r In rs.Fields
+            .AddItem r.Name
+        Next r
+    End With
+    
+    Set rs = Nothing
+    Set db = Nothing
+    
+'    If IsNull(Me.cob_kbn.Value) = False Then
+'        cob_kbn_AfterUpdate
+'    End If
+End Sub
+
+Private Sub cob_kyd_AfterUpdate()
+    With Me.list_kyd
+        .RowSourceType = "Table/Query"
+        .RowSource = "SELECT LeftB([r_select]![商品名],InStrB([r_select]![商品名],'/')-1) AS words, Count(r_select.ID) " & _
+            "FROM r_select " & _
+            "WHERE (((r_select.商品名) Like '*/*') AND ((r_select.表示先カテゴリ)='" & Me.cob_kyd.Value & "')) " & _
+            "GROUP BY LeftB([r_select]![商品名],InStrB([r_select]![商品名],'/')-1) " & _
+            "ORDER BY Count(r_select.ID) DESC;"
+    End With
+    
+End Sub
+
+Private Sub Form_Load()
+    With Me.cob_store
+        .RowSourceType = "Value List"
+        .RowSource = "'R';'Y';'A'"
+        .Value = "R"
+    End With
+            
+    With Me.cob_kyd
+        .RowSourceType = "Table/Query"
+        .RowSource = "SELECT r_select.表示先カテゴリ FROM r_select GROUP BY r_select.表示先カテゴリ ORDER BY r_select.表示先カテゴリ;"
+    End With
+    
+    With Me.cob_kbn
+        .RowSourceType = "Value List"
+        .RowSource = "'A';'B';'C';'D';'E'"
+    End With
+    
+    Me.chk_kbn1.Value = False
+    Me.chk_kbn2.Value = False
+    cob_store_AfterUpdate
+    Me.txt_replace_start.EnterKeyBehavior = True
+    Me.txt_replace_end.EnterKeyBehavior = True
+    Me.txt_replace_str.EnterKeyBehavior = True
+End Sub
+
