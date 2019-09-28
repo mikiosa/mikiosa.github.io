@@ -1,0 +1,14 @@
+SELECT [クエリ1].管理番号, Sheet1.[コード], [クエリ1].価格, Sheet1.価格, Ta.[バリエーション], Tr.管理番号, IIf([クエリ1]![価格]=[Sheet1]![価格],1,IIf(IsNull([クエリ1]![管理番号]),2,0)) AS 式1
+FROM Tr RIGHT JOIN (Ta RIGHT JOIN (Sheet1 LEFT JOIN クエリ1 ON Sheet1.[コード] = [クエリ1].管理番号) ON Ta.[コード] = Sheet1.[コード]) ON Tr.[コード] = Sheet1.[コード];
+
+SELECT Tr.管理番号, Tr.価格
+FROM Tr
+UNION
+SELECT Tr.管理番号, Tr.価格
+FROM Ta INNER JOIN Tr ON Ta.[バリエーション] = Tr.管理番号
+UNION
+SELECT Tr.[コード], Tr.価格
+FROM Tr
+UNION SELECT Tr.[コード], Tr.価格
+FROM Ta INNER JOIN Tr ON Ta.[バリエーション] = Tr.[コード];
+
